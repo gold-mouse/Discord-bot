@@ -52,7 +52,7 @@ class SelfBot:
                 if check_job_post(content):
                     show_toast(
                         title=title,
-                        message=f"{channel_name}\n{content[0:15]}{'...' if len(content) > 15 else ''}",
+                        message=f"{channel_name}\n{content[0:30]}{'...' if len(content) > 30 else ''}",
                         position="top-center",
                         toast_type="info",
                         url=url
@@ -73,7 +73,7 @@ class SelfBot:
         return check_job_post(message.content)
 
     async def _handle_message(self, message: discord.Message):        
-        update_status(f"New Message - ```{message.content[:15]}{'...' if len(message.content) > 15 else ''}```\n{message.jump_url}\n")
+        update_status(f"New Message - ```{message.content[:30]}{'...' if len(message.content) > 30 else ''}```\n{message.jump_url}\n")
         if isinstance(message.channel, discord.Thread):
             thread = message.channel
 
@@ -85,7 +85,7 @@ class SelfBot:
 
                     show_toast(
                         title=f"New reply in {thread_title}",
-                        message=f"{forum_name}\n{content[0:15]}{'...' if len(content) > 15 else ''}",
+                        message=f"{forum_name}\n{content[0:30]}{'...' if len(content) > 30 else ''}",
                         position="top-center",
                         toast_type="info",
                         url=message.jump_url
@@ -95,7 +95,7 @@ class SelfBot:
         if self._is_good_for_me(message):
             show_toast(
                 title="New Message!",
-                message=message.content[:15] + ("..." if len(message.content) > 15 else ""),
+                message=message.content[:30] + ("..." if len(message.content) > 30 else ""),
                 position="top-center",
                 toast_type="info",
                 url=message.jump_url
