@@ -24,6 +24,7 @@ class SelfBot:
     def _register_events(self):
         @self.client.event
         async def on_ready():
+            await send_message_to_tg("Hello, I am ready to work!")
             update_status(f"Logged in as ```{self.client.user} (ID: {self.client.user.id})```", "success") # type: ignore
 
         @self.client.event
@@ -52,6 +53,7 @@ class SelfBot:
                 url = first_message.jump_url
 
                 if check_job_post(content):
+                    await send_message_to_tg(f"{title}\n{content}\n{url}")
                     show_toast(
                         title=title,
                         message=f"{channel_name}\n{content[0:30]}{'...' if len(content) > 30 else ''}",
@@ -59,8 +61,6 @@ class SelfBot:
                         toast_type="info",
                         url=url
                     )
-
-                    await send_message_to_tg(f"{title}\n{content}\n{url}")
 
         @self.client.event
         async def setup_hook():
@@ -86,6 +86,7 @@ class SelfBot:
                     thread_title = thread.name
                     content = message.content
 
+                    await send_message_to_tg(f"{content}\n{message.jump_url}")
                     show_toast(
                         title=f"New reply in {thread_title}",
                         message=f"{forum_name}\n{content[0:30]}{'...' if len(content) > 30 else ''}",
@@ -93,11 +94,11 @@ class SelfBot:
                         toast_type="info",
                         url=message.jump_url
                     )
-                    await send_message_to_tg(f"{content}\n{message.jump_url}")
                     return
 
         if self._is_good_for_me(message):
             update_status(f"Job Message - ```{message.content[:30]}{'...' if len(message.content) > 30 else ''}```\n{message.jump_url}\n")
+            await send_message_to_tg(f"{message.content}\n{message.jump_url}")
             show_toast(
                 title="New Message!",
                 message=message.content[:30] + ("..." if len(message.content) > 30 else ""),
@@ -105,7 +106,6 @@ class SelfBot:
                 toast_type="info",
                 url=message.jump_url
             )
-            await send_message_to_tg(f"{message.content}\n{message.jump_url}")
 
     async def _schedule_manage(self):
         await self.client.wait_until_ready()
