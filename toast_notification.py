@@ -212,7 +212,7 @@ class ToastNotification(tk.Tk):
 def show_toast(
     title: str,
     message: str,
-    duration: int = 3000,
+    duration: int = 6000,
     width: int = 300,
     height: int = 100,
     position: Placement = "bottom-right",

@@ -55,7 +55,6 @@ class SelfBot:
                         message=f"{channel_name}\n{content[0:15]}{'...' if len(content) > 15 else ''}",
                         position="top-center",
                         toast_type="info",
-                        duration=4000,
                         url=url
                     )
 
@@ -89,7 +88,6 @@ class SelfBot:
                         message=f"{forum_name}\n{content[0:15]}{'...' if len(content) > 15 else ''}",
                         position="top-center",
                         toast_type="info",
-                        duration=4000,
                         url=message.jump_url
                     )
                     return
@@ -100,7 +98,7 @@ class SelfBot:
                 message=message.content[:15] + ("..." if len(message.content) > 15 else ""),
                 position="top-center",
                 toast_type="info",
-                duration=4000
+                url=message.jump_url
             )
 
     async def _schedule_manage(self):
