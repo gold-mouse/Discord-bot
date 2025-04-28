@@ -7,6 +7,8 @@ from utility import update_status, sleep_like_human, get_tagids_by_forum
 from toast_notification import show_toast
 from gpt import check_job_post
 
+from telegram_bot import send_message_to_tg
+
 class SelfBot:
     def __init__(self, token: str, chat_channel_ids: list[int], forum_channel_ids: list[int]):
         update_status("Initializing self-bot...", "info")
@@ -58,6 +60,8 @@ class SelfBot:
                         url=url
                     )
 
+                    await send_message_to_tg(f"{title}\n{content}\n{url}")
+
         @self.client.event
         async def setup_hook():
             self.client.loop.create_task(self._schedule_manage())
@@ -73,7 +77,6 @@ class SelfBot:
         return check_job_post(message.content)
 
     async def _handle_message(self, message: discord.Message):        
-        update_status(f"New Message - ```{message.content[:30]}{'...' if len(message.content) > 30 else ''}```\n{message.jump_url}\n")
         if isinstance(message.channel, discord.Thread):
             thread = message.channel
 
@@ -90,9 +93,11 @@ class SelfBot:
                         toast_type="info",
                         url=message.jump_url
                     )
+                    await send_message_to_tg(f"{content}\n{message.jump_url}")
                     return
 
         if self._is_good_for_me(message):
+            update_status(f"Job Message - ```{message.content[:30]}{'...' if len(message.content) > 30 else ''}```\n{message.jump_url}\n")
             show_toast(
                 title="New Message!",
                 message=message.content[:30] + ("..." if len(message.content) > 30 else ""),
@@ -100,6 +105,7 @@ class SelfBot:
                 toast_type="info",
                 url=message.jump_url
             )
+            await send_message_to_tg(f"{message.content}\n{message.jump_url}")
 
     async def _schedule_manage(self):
         await self.client.wait_until_ready()

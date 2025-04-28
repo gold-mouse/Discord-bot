@@ -16,6 +16,7 @@ Reply "no" if:
 - The message mentions any nationality, ethnicity, or native language restrictions
 OR
 - The message is unrelated to hiring a developer, programmer, or software engineer.
+- The message is related to seeking a job as developer - job seeking promotion
 
 You must reply with only "yes" or "no" and nothing else.
 Always answer strictly in lowercase: "yes" or "no".
