@@ -1,6 +1,5 @@
 discord.py-self
 halo
-tkinter
 python-telegram-bot
 openai
 dotenv
