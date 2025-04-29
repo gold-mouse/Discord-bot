@@ -124,7 +124,8 @@ class SelfBot:
         channel = random.choice([c for c in channels if c])
         if channel:
             try:
-                await channel.send(content)
+                msg = await channel.send(content)
+                send_message_to_tg(f"Posted to {channel.name}\n{msg.content}\n{msg.jump_url}")
                 update_status("Success to send message", "success")
             except discord.HTTPException as e:
                 self.chat_channel_ids.remove(channel.id)
@@ -147,6 +148,7 @@ class SelfBot:
                     applied_tags=available_tags
                 )
                 self.active_threads.add(thread.thread.id)
+                send_message_to_tg(f"Posted to {forum.name}\n{title}\n{content}\n{thread.thread.jump_url}")
                 update_status(f"Success to post: {thread.thread.id}", "success")
             except Exception as e:
                 self.forum_channel_ids.remove(forum_channel_id)
