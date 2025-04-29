@@ -26,6 +26,7 @@ chatLog = "Chat Bot: Hi, I'm a Chat Bot. What can I help you with today?\n"
 
 
 def check_job_post(text) -> bool:
+    if len(text) < 30: return False
     global chatLog
     messages = [
         {"role": "system", "content": system},
