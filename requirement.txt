@@ -3,3 +3,4 @@ halo
 python-telegram-bot
 openai
 dotenv
+audioop-lts
