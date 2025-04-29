@@ -7,20 +7,23 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 system = """
 You are an assistant that reads a user's message and determines if it is about hiring, recruiting, or looking for a developer, programmer, or software engineer.
 
-Reply "yes" only if:
-- The content is hiring or recruiting for a developer, programmer, or software engineer
-AND
-- There are no requirements related to nationality, ethnicity, native language ability (such as "native English speaker", "European only", or similar).
+Reply "yes" only if the content is looking for a developer.
 
 Reply "no" if:
 - The message mentions any nationality, ethnicity, or native language restrictions
 OR
 - The message is unrelated to hiring a developer, programmer, or software engineer.
-- The message is related to seeking a job as developer - job seeking promotion
 
 You must reply with only "yes" or "no" and nothing else.
 Always answer strictly in lowercase: "yes" or "no".
 """
+
+try:
+    with open("/prompt.txt", "r") as f:
+        custom_prompt = f.read()
+        system = custom_prompt if custom_prompt else system
+except FileNotFoundError:
+    pass
 
 chatLog = "Chat Bot: Hi, I'm a Chat Bot. What can I help you with today?\n"
 
