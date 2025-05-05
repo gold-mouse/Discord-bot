@@ -66,5 +66,5 @@ async def sleep_like_human(a: int = 0, b: int = 0):
     return True
 
 def get_tagids_by_forum(formid: str) -> List[int]:
-    return TAG_ID_BY_FORUM_CHANNEL.get(formid, None)
+    return TAG_ID_BY_FORUM_CHANNEL.get(formid, None) # type: ignore
     

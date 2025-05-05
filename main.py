@@ -1,5 +1,4 @@
 import discord
-import random
 
 from constants import *
 from strings import title, content
@@ -24,47 +23,44 @@ class SelfBot:
     def _register_events(self):
         @self.client.event
         async def on_ready():
-            await send_message_to_tg("Hello, I am ready to work!")
             update_status(f"Logged in as ```{self.client.user} (ID: {self.client.user.id})```", "success") # type: ignore
-
-        @self.client.event
-        async def on_message(message: discord.Message):
-            if message.author.id != self.client.user.id: # type: ignore
-                await self._handle_message(message)
-
-        @self.client.event
-        async def on_thread_create(thread: discord.Thread):
-            if isinstance(thread.parent, discord.ForumChannel):
-                update_status(f"New forum post detected!")
-
-                # Fetch the first message in the thread
-                try:
-                    first_message = await thread.fetch_message(thread.id)  # The first message ID = thread ID
-                    if first_message.author.id == self.client.user.id:
-                        update_status("Post author is self. Ignoring.")
-                        return
-                except Exception as e:
-                    update_status(f"Failed to fetch first message: {e}", "error")
-                    return
-
-                channel_name = thread.parent.name  # Forum name
-                title = thread.name  # Thread title
-                content = first_message.content  # Thread first message content
-                url = first_message.jump_url
-
-                if check_job_post(content):
-                    await send_message_to_tg(f"{title}\n{content}\n{url}")
-                    show_toast(
-                        title=title,
-                        message=f"{channel_name}\n{content[0:30]}{'...' if len(content) > 30 else ''}",
-                        position="top-center",
-                        toast_type="info",
-                        url=url
-                    )
-
-        @self.client.event
-        async def setup_hook():
+            await send_message_to_tg("Hello, I am ready to work!")
             self.client.loop.create_task(self._schedule_manage())
+
+        # @self.client.event
+        # async def on_message(message: discord.Message):
+        #     if message.author.id != self.client.user.id: # type: ignore
+        #         await self._handle_message(message)
+
+        # @self.client.event
+        # async def on_thread_create(thread: discord.Thread):
+        #     if isinstance(thread.parent, discord.ForumChannel):
+        #         update_status(f"New forum post detected!")
+
+        #         # Fetch the first message in the thread
+        #         try:
+        #             first_message = await thread.fetch_message(thread.id)  # The first message ID = thread ID
+        #             if first_message.author.id == self.client.user.id:
+        #                 update_status("Post author is self. Ignoring.")
+        #                 return
+        #         except Exception as e:
+        #             update_status(f"Failed to fetch first message: {e}", "error")
+        #             return
+
+        #         channel_name = thread.parent.name  # Forum name
+        #         title = thread.name  # Thread title
+        #         content = first_message.content  # Thread first message content
+        #         url = first_message.jump_url
+
+        #         if check_job_post(content):
+        #             await send_message_to_tg(f"{title}\n{content}\n{url}")
+        #             show_toast(
+        #                 title=title,
+        #                 message=f"{channel_name}\n{content[0:30]}{'...' if len(content) > 30 else ''}",
+        #                 position="top-center",
+        #                 toast_type="info",
+        #                 url=url
+        #             )
 
     def _is_good_for_me(self, message: discord.Message) -> bool:
 
@@ -111,35 +107,41 @@ class SelfBot:
         await self.client.wait_until_ready()
 
         while not self.client.is_closed():
+            msg_res, forum_res = None, None
             if len(self.forum_channel_ids) > 0:
-                await self._scheduled_forum_post()
-                await sleep_like_human()
-            
-            if len(self.chat_channel_ids) > 0:
-                await self._scheduled_chat_post()
-                await sleep_like_human()
+                for forum_channel_id in self.forum_channel_ids:
+                    if not msg_res == False:
+                        await sleep_like_human()
+                    msg_res = await self._scheduled_forum_post(forum_channel_id)
 
-    async def _scheduled_chat_post(self):
-        channels = [self.client.get_channel(cid) for cid in self.chat_channel_ids]
-        channel = random.choice([c for c in channels if c])
+            if len(self.chat_channel_ids) > 0:
+                channels = [self.client.get_channel(cid) for cid in self.chat_channel_ids]
+                for channel in channels:
+                    if channel:
+                        if not forum_res == False:
+                            await sleep_like_human()
+                        await self._scheduled_chat_post(channel)
+
+    async def _scheduled_chat_post(self, channel):
         if channel:
             try:
                 msg = await channel.send(content)
-                send_message_to_tg(f"Posted to {channel.name}\n{msg.content}\n{msg.jump_url}")
+                await send_message_to_tg(f"Posted to {channel.name}\n{msg.content}\n{msg.jump_url}")
                 update_status("Success to send message", "success")
+                return True
             except discord.HTTPException as e:
                 self.chat_channel_ids.remove(channel.id)
-                update_status(f"Failed to send message to {channel.id}\nError: {e}", "error")
+                update_status(f"Failed to send message to {channel.id}", "error")
+                return False
 
-    async def _scheduled_forum_post(self):
-        forum_channel_id = random.choice(self.forum_channel_ids)
+    async def _scheduled_forum_post(self, forum_channel_id):
         forum = self.client.get_channel(forum_channel_id)  # ForumChannel
         if isinstance(forum, discord.ForumChannel):
             try:
                 TAG_ID = get_tagids_by_forum(str(forum_channel_id))
                 if not TAG_ID:
                     update_status("Failed to forum post - ```Missed Tag Ids```", "warning")
-                    return
+                    return False
 
                 available_tags = [tag for tag in forum.available_tags if tag.id in TAG_ID]
                 thread = await forum.create_thread(
@@ -148,11 +150,13 @@ class SelfBot:
                     applied_tags=available_tags
                 )
                 self.active_threads.add(thread.thread.id)
-                send_message_to_tg(f"Posted to {forum.name}\n{title}\n{content}\n{thread.thread.jump_url}")
+                await send_message_to_tg(f"Posted to {forum.name}\n{title}\n{content}\n{thread.thread.jump_url}")
                 update_status(f"Success to post: {thread.thread.id}", "success")
+                return True
             except Exception as e:
                 self.forum_channel_ids.remove(forum_channel_id)
-                update_status(f"Failed to post forum to ```{forum_channel_id}```\nError: {e}", "error")
+                update_status(f"Failed to post forum to ```{forum_channel_id}```", "error")
+                return False
         else:
             update_status("Channel is not a forum!", "warning")
 
