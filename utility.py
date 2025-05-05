@@ -67,4 +67,8 @@ async def sleep_like_human(a: int = 0, b: int = 0):
 
 def get_tagids_by_forum(formid: str) -> List[int]:
     return TAG_ID_BY_FORUM_CHANNEL.get(formid, None) # type: ignore
-    
+
+def get_promo():
+    with open("promo.txt", "r") as f:
+        title_content = f.read().split("\n---\n")
+        return title_content[0], title_content[1]

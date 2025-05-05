@@ -1,10 +1,7 @@
 import discord
 
 from constants import *
-from strings import title, content
-from utility import update_status, sleep_like_human, get_tagids_by_forum
-from toast_notification import show_toast
-from gpt import check_job_post
+from utility import get_promo, update_status, sleep_like_human, get_tagids_by_forum
 
 from telegram_bot import send_message_to_tg
 
@@ -26,82 +23,6 @@ class SelfBot:
             update_status(f"Logged in as ```{self.client.user} (ID: {self.client.user.id})```", "success") # type: ignore
             await send_message_to_tg("Hello, I am ready to work!")
             self.client.loop.create_task(self._schedule_manage())
-
-        # @self.client.event
-        # async def on_message(message: discord.Message):
-        #     if message.author.id != self.client.user.id: # type: ignore
-        #         await self._handle_message(message)
-
-        # @self.client.event
-        # async def on_thread_create(thread: discord.Thread):
-        #     if isinstance(thread.parent, discord.ForumChannel):
-        #         update_status(f"New forum post detected!")
-
-        #         # Fetch the first message in the thread
-        #         try:
-        #             first_message = await thread.fetch_message(thread.id)  # The first message ID = thread ID
-        #             if first_message.author.id == self.client.user.id:
-        #                 update_status("Post author is self. Ignoring.")
-        #                 return
-        #         except Exception as e:
-        #             update_status(f"Failed to fetch first message: {e}", "error")
-        #             return
-
-        #         channel_name = thread.parent.name  # Forum name
-        #         title = thread.name  # Thread title
-        #         content = first_message.content  # Thread first message content
-        #         url = first_message.jump_url
-
-        #         if check_job_post(content):
-        #             await send_message_to_tg(f"{title}\n{content}\n{url}")
-        #             show_toast(
-        #                 title=title,
-        #                 message=f"{channel_name}\n{content[0:30]}{'...' if len(content) > 30 else ''}",
-        #                 position="top-center",
-        #                 toast_type="info",
-        #                 url=url
-        #             )
-
-    def _is_good_for_me(self, message: discord.Message) -> bool:
-
-        if self.client.user in message.mentions:
-            return True
-
-        if self.client.user.name.lower() in message.content.lower(): # type: ignore
-            return True
-        
-        return check_job_post(message.content)
-
-    async def _handle_message(self, message: discord.Message):        
-        if isinstance(message.channel, discord.Thread):
-            thread = message.channel
-
-            if thread.id in self.active_threads:
-                if isinstance(thread.parent, discord.ForumChannel):
-                    forum_name = thread.parent.name
-                    thread_title = thread.name
-                    content = message.content
-
-                    await send_message_to_tg(f"{content}\n{message.jump_url}")
-                    show_toast(
-                        title=f"New reply in {thread_title}",
-                        message=f"{forum_name}\n{content[0:30]}{'...' if len(content) > 30 else ''}",
-                        position="top-center",
-                        toast_type="info",
-                        url=message.jump_url
-                    )
-                    return
-
-        if self._is_good_for_me(message):
-            update_status(f"Job Message - ```{message.content[:30]}{'...' if len(message.content) > 30 else ''}```\n{message.jump_url}\n")
-            await send_message_to_tg(f"{message.content}\n{message.jump_url}")
-            show_toast(
-                title="New Message!",
-                message=message.content[:30] + ("..." if len(message.content) > 30 else ""),
-                position="top-center",
-                toast_type="info",
-                url=message.jump_url
-            )
 
     async def _schedule_manage(self):
         await self.client.wait_until_ready()
@@ -125,6 +46,7 @@ class SelfBot:
     async def _scheduled_chat_post(self, channel):
         if channel:
             try:
+                title, content = get_promo()
                 msg = await channel.send(content)
                 await send_message_to_tg(f"Posted to {channel.name}\n{msg.content}\n{msg.jump_url}")
                 update_status("Success to send message", "success")
@@ -143,6 +65,8 @@ class SelfBot:
                     update_status("Failed to forum post - ```Missed Tag Ids```", "warning")
                     return False
 
+                title, content = get_promo()
+                
                 available_tags = [tag for tag in forum.available_tags if tag.id in TAG_ID]
                 thread = await forum.create_thread(
                     name=title,
