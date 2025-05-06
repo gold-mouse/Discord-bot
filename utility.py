@@ -56,9 +56,10 @@ def log_delay(sec):
     
     update_status(f"delay for {formatted_time} seconds")
     
-async def sleep_like_human(a: int = 0, b: int = 0):
+async def sleep_like_human(a: int = 0, b: int = 0, log=True):
     sec = get_random_sec(a, b)
-    log_delay(sec)
+    if log:
+        log_delay(sec)
 
     await asyncio.sleep(sec)
     

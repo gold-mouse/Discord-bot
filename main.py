@@ -1,3 +1,4 @@
+from datetime import datetime, time as dtime, timezone
 import discord
 
 from constants import *
@@ -28,25 +29,34 @@ class SelfBot:
         await self.client.wait_until_ready()
 
         while not self.client.is_closed():
-            msg_res, forum_res = None, None
-            if len(self.forum_channel_ids) > 0:
-                for forum_channel_id in self.forum_channel_ids:
-                    if not msg_res == False:
-                        await sleep_like_human()
-                    msg_res = await self._scheduled_forum_post(forum_channel_id)
+            now = datetime.now(timezone.utc).time()
+            start_time = dtime(5, 0)
+            end_time = dtime(22, 0)
 
-            if len(self.chat_channel_ids) > 0:
-                channels = [self.client.get_channel(cid) for cid in self.chat_channel_ids]
-                for channel in channels:
-                    if channel:
-                        if not forum_res == False:
+            if start_time <= now <= end_time:
+                msg_res, forum_res = None, None
+                
+                if len(self.forum_channel_ids) > 0:
+                    for forum_channel_id in self.forum_channel_ids:
+                        if not msg_res == False:
                             await sleep_like_human()
-                        await self._scheduled_chat_post(channel)
+                        msg_res = await self._scheduled_forum_post(forum_channel_id)
+
+                if len(self.chat_channel_ids) > 0:
+                    channels = [self.client.get_channel(cid) for cid in self.chat_channel_ids]
+                    for channel in channels:
+                        if channel:
+                            if not forum_res == False:
+                                await sleep_like_human()
+                            await self._scheduled_chat_post(channel)
+            else:
+                update_status("Sleeping from 5:00 to 22:00 UTC", "info")
+                await sleep_like_human(60, 60, log=False)
 
     async def _scheduled_chat_post(self, channel):
         if channel:
             try:
-                title, content = get_promo()
+                _, content = get_promo()
                 msg = await channel.send(content)
                 await send_message_to_tg(f"Posted to {channel.name}\n{msg.content}\n{msg.jump_url}")
                 update_status("Success to send message", "success")
