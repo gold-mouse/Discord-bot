@@ -1,5 +1,4 @@
 import asyncio
-from halo import Halo # type: ignore
 from time import sleep
 from datetime import datetime
 import random
