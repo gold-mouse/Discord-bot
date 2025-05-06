@@ -95,7 +95,6 @@ The bot will:
 
 ## Configuration
 
-- `title` and `content` variables (in `strings.py`) define the message posted to forums.
 - Delay between posts is randomized between `MIN_DELAY` and `MAX_DELAY` minutes.
 - Tags applied to forum posts are mapped in `constants.py` (`TAG_ID_BY_FORUM_CHANNEL`).
 

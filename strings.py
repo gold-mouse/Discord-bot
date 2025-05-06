@@ -1,9 +1,0 @@
-title="AI Powered Platform Developer is Open to Work with you!"
-content="""
-**I specialized in AI Powered platform development:**
-Python, Vectore Store, RAG, Langchain, Workflow Automation with n8n, zapier or make.com, AI Agent Development!
-React/Next.js, React Native and also Flutter!
-Flask/Django!
-Node.js/Express.js or Nest.js!
-Feel free to ask me if you have any project!
-"""
