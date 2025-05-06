@@ -50,7 +50,7 @@ class SelfBot:
                                 await sleep_like_human()
                             await self._scheduled_chat_post(channel)
             else:
-                update_status("Sleeping from 5:00 to 22:00 UTC", "info")
+                update_status(f"Sleeping from {now.strftime('%H:%M:%S')} to 22:00:00 UTC", "info")
                 await sleep_like_human(60, 60, log=False)
 
     async def _scheduled_chat_post(self, channel):
