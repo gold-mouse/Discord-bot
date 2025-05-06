@@ -1,6 +1,4 @@
 discord.py-self
-halo
 python-telegram-bot
-openai
 dotenv
 audioop-lts
