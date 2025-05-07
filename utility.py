@@ -57,7 +57,7 @@ def log_delay(sec):
     update_status(f"delay for {formatted_time} seconds")
     
 async def sleep_like_human(a: int = 0, b: int = 0, log=True):
-    sec = get_random_sec(a, b)
+    sec = get_random_sec(a * 60, b * 60)
     if log:
         log_delay(sec)
 
