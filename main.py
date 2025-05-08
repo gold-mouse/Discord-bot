@@ -2,16 +2,16 @@ from datetime import datetime, time as dtime, timezone
 import discord
 
 from constants import *
-from utility import get_promo, update_status, sleep_like_human, get_tagids_by_forum
+from utility import get_promo, update_status, sleep_like_human
 
 from telegram_bot import send_message_to_tg
 
 class SelfBot:
-    def __init__(self, token: str, chat_channel_ids: list[int], forum_channel_ids: list[int]):
+    def __init__(self, token: str, chat_channel_ids: list[int], forum_channel_info: dict):
         update_status("Initializing self-bot...", "info")
         self.token = token
         self.chat_channel_ids = chat_channel_ids
-        self.forum_channel_ids = forum_channel_ids
+        self.forum_channel_info = forum_channel_info
 
         self.last_chat_messages = {}  # {channel_id: message_id}
         self.last_forum_threads = {}  # {forum_channel_id: thread_id}
@@ -30,11 +30,11 @@ class SelfBot:
     
         @self.client.event
         async def on_message(message):
-            if message.author.id == self.client.user.id:
+            if message.author.id == self.client.user.id: # type: ignore
                 return  # Ignore self-messages
 
             if isinstance(message.channel, discord.DMChannel):
-                await send_message_to_tg(f"📩 DM from {message.author}:\n{message.content}\{message.jump_url}")
+                await send_message_to_tg(f"📩 DM from {message.author}:\n{message.content}\n{message.jump_url}")
 
             if isinstance(message.channel, discord.Thread):
                 if message.channel.id in self.active_threads:
@@ -53,8 +53,8 @@ class SelfBot:
             if start_time <= now <= end_time:
                 msg_res, forum_res = None, None
                 
-                if len(self.forum_channel_ids) > 0:
-                    for forum_channel_id in self.forum_channel_ids:
+                if len(self.forum_channel_info.keys()) > 0:
+                    for forum_channel_id in self.forum_channel_info.keys():
                         if not msg_res == False:
                             await sleep_like_human()
                         msg_res = await self._scheduled_forum_post(forum_channel_id)
@@ -92,21 +92,21 @@ class SelfBot:
                 update_status(f"Failed to send message to {channel.id}", "error")
                 return False
 
-    async def _scheduled_forum_post(self, forum_channel_id):
-        forum = self.client.get_channel(forum_channel_id)  # ForumChannel
+    async def _scheduled_forum_post(self, forum_channel_id: str):
+        forum = self.client.get_channel(int(forum_channel_id))  # ForumChannel
         if isinstance(forum, discord.ForumChannel):
             try:
                 last_thread_id = self.last_forum_threads.get(forum_channel_id)
                 if last_thread_id:
                     try:
-                        old_thread = await forum.fetch_thread(last_thread_id)
+                        old_thread = await forum.fetch_thread(last_thread_id) # type: ignore
                         await old_thread.delete()
                         self.active_threads.discard(last_thread_id)
                         update_status(f"Deleted old forum thread in {forum.name}", "info")
                     except discord.NotFound:
                         update_status("Previous thread not found (possibly already deleted)", "warning")
 
-                TAG_ID = get_tagids_by_forum(str(forum_channel_id))
+                TAG_ID = self.get_tagids_by_forum(forum_channel_id)
                 if not TAG_ID:
                     update_status("Failed to forum post - ```Missed Tag Ids```", "warning")
                     return False
@@ -124,11 +124,14 @@ class SelfBot:
                 update_status(f"Success to post: {thread.thread.id}", "success")
                 return True
             except Exception as e:
-                self.forum_channel_ids.remove(forum_channel_id)
+                self.forum_channel_info.pop(forum_channel_id)
                 update_status(f"Failed to post forum to ```{forum_channel_id}```", "error")
                 return False
         else:
             update_status("Channel is not a forum!", "warning")
+
+    def get_tagids_by_forum(self, forum_channel_id: str):
+        return self.forum_channel_info.get(forum_channel_id, None)
 
     def run(self):
         # Start the bot
@@ -154,13 +157,18 @@ if __name__ == "__main__":
         chat_channel_ids = [int(line.strip()) for line in f.readlines()]
     update_status(f"Loaded {len(chat_channel_ids)} chat channel IDs", "success")
 
+    forum_channel_info = {}
     with open("forum_channel_ids.cfg", "r") as f:
-        forum_channel_ids = [int(line.strip()) for line in f.readlines()]
-    update_status(f"Loaded {len(forum_channel_ids)} forum channel IDs", "success")
+        for line in f.readlines():
+            id_and_tags = line.split(": ")
+            id = id_and_tags[0]
+            tags = id_and_tags[1].split(", ")
+            forum_channel_info[id] = [int(id) for id in tags]
+    update_status(f"Loaded {len(forum_channel_info.keys())} forum channel IDs", "success")
 
     bot = SelfBot(
         token=DISCORD_AUTH_TOKEN,
         chat_channel_ids=chat_channel_ids,
-        forum_channel_ids=forum_channel_ids
+        forum_channel_info=forum_channel_info
     )
     bot.run()
