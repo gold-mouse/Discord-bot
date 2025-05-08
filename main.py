@@ -13,6 +13,9 @@ class SelfBot:
         self.chat_channel_ids = chat_channel_ids
         self.forum_channel_ids = forum_channel_ids
 
+        self.last_chat_messages = {}  # {channel_id: message_id}
+        self.last_forum_threads = {}  # {forum_channel_id: thread_id}
+
         # Initialize client
         self.active_threads = set()
         self.client = discord.Client(message_cache_size=1000)
@@ -56,6 +59,15 @@ class SelfBot:
     async def _scheduled_chat_post(self, channel):
         if channel:
             try:
+                last_msg_id = self.last_chat_messages.get(channel.id)
+                if last_msg_id:
+                    try:
+                        old_msg = await channel.fetch_message(last_msg_id)
+                        await old_msg.delete()
+                        update_status(f"Deleted old message in {channel.name}", "info")
+                    except discord.NotFound:
+                        update_status("Previous message not found (possibly already deleted)", "warning")
+
                 _, content = get_promo()
                 msg = await channel.send(content)
                 await send_message_to_tg(f"Posted to {channel.name}\n{msg.content}\n{msg.jump_url}")
@@ -70,6 +82,15 @@ class SelfBot:
         forum = self.client.get_channel(forum_channel_id)  # ForumChannel
         if isinstance(forum, discord.ForumChannel):
             try:
+                last_thread_id = self.last_forum_threads.get(forum_channel_id)
+                if last_thread_id:
+                    try:
+                        old_thread = await forum.fetch_thread(last_thread_id)
+                        await old_thread.delete()
+                        update_status(f"Deleted old forum thread in {forum.name}", "info")
+                    except discord.NotFound:
+                        update_status("Previous thread not found (possibly already deleted)", "warning")
+
                 TAG_ID = get_tagids_by_forum(str(forum_channel_id))
                 if not TAG_ID:
                     update_status("Failed to forum post - ```Missed Tag Ids```", "warning")
