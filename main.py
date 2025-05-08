@@ -27,6 +27,20 @@ class SelfBot:
             update_status(f"Logged in as ```{self.client.user} (ID: {self.client.user.id})```", "success") # type: ignore
             await send_message_to_tg("Hello, I am ready to work!")
             self.client.loop.create_task(self._schedule_manage())
+    
+        @self.client.event
+        async def on_message(message):
+            if message.author.id == self.client.user.id:
+                return  # Ignore self-messages
+
+            if isinstance(message.channel, discord.DMChannel):
+                await send_message_to_tg(f"📩 DM from {message.author}:\n{message.content}\{message.jump_url}")
+
+            if isinstance(message.channel, discord.Thread):
+                if message.channel.id in self.active_threads:
+                    await send_message_to_tg(
+                        f"💬 Reply in your thread **{message.channel.name}** by {message.author}:\n{message.content}\n{message.jump_url}"
+                    )
 
     async def _schedule_manage(self):
         await self.client.wait_until_ready()
@@ -87,6 +101,7 @@ class SelfBot:
                     try:
                         old_thread = await forum.fetch_thread(last_thread_id)
                         await old_thread.delete()
+                        self.active_threads.discard(last_thread_id)
                         update_status(f"Deleted old forum thread in {forum.name}", "info")
                     except discord.NotFound:
                         update_status("Previous thread not found (possibly already deleted)", "warning")
