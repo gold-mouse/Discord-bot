@@ -51,17 +51,20 @@ Example `chat_channel_ids.cfg`:
 987654321098765432
 ```
 
-4. **Update `constants.py`** with your:
-
-* `DISCORD_AUTH_TOKEN`
-* `TELEGRAM_BOT_TOKEN`
-* `TELEGRAM_CHAT_ID`
+4. **Add .env file:**
+```sh
+DISCORD_AUTH_TOKEN=YOUR_AUTHORIZATION
+TELEGRAM_BOT_TOKEN=YOUR_BOT_TOKEN
+TELEGRAM_CHAT_ID=YOUR_CHATID
+```
 
 5. **Edit promo.txt file** The file has to follow bellow format:
 
+```sh
 title
 ---
 content
+```
 
 6. **Run the bot:**
 
