@@ -74,21 +74,6 @@ python selfbot.py
 
 ---
 
-## File Structure
-
-```
-.
-├── constants.py
-├── selfbot.py
-├── telegram_bot.py
-├── utility.py
-├── chat_channel_ids.cfg
-├── forum_channel_ids.cfg
-└── requirements.txt
-```
-
----
-
 ## Notes
 
 * The bot only operates between **05:00 - 22:00 UTC**.
