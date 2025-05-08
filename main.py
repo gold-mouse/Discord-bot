@@ -158,7 +158,7 @@ if __name__ == "__main__":
     update_status(f"Loaded {len(chat_channel_ids)} chat channel IDs", "success")
 
     forum_channel_info = {}
-    with open("forum_channel_ids.cfg", "r") as f:
+    with open("forum_channel_info.cfg", "r") as f:
         for line in f.readlines():
             id_and_tags = line.split(": ")
             id = id_and_tags[0]
