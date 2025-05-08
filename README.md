@@ -69,7 +69,7 @@ content
 6. **Run the bot:**
 
 ```bash
-python selfbot.py
+python main.py
 ```
 
 ---
