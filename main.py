@@ -73,7 +73,7 @@ class SelfBot:
     async def _scheduled_chat_post(self, channel):
         if channel:
             try:
-                last_msg_id = self.last_chat_messages.get(channel.id)
+                last_msg_id = self.last_chat_messages.get(str(channel.id))
                 if last_msg_id:
                     try:
                         old_msg = await channel.fetch_message(last_msg_id)
@@ -84,8 +84,9 @@ class SelfBot:
 
                 _, content = get_promo()
                 msg = await channel.send(content)
-                await send_message_to_tg(f"Posted to {channel.name}\n{msg.content}\n{msg.jump_url}")
+                self.last_chat_messages[str(channel.id)] = msg.id
                 update_status("Success to send message", "success")
+                await send_message_to_tg(f"Posted to {channel.name}\n{msg.content}\n{msg.jump_url}")
                 return True
             except discord.HTTPException as e:
                 self.chat_channel_ids.remove(channel.id)
@@ -120,8 +121,9 @@ class SelfBot:
                     applied_tags=available_tags
                 )
                 self.active_threads.add(thread.thread.id)
-                await send_message_to_tg(f"Posted to {forum.name}\n{title}\n{content}\n{thread.thread.jump_url}")
+                self.last_forum_threads[forum_channel_id] = thread.thread.id
                 update_status(f"Success to post: {thread.thread.id}", "success")
+                await send_message_to_tg(f"Posted to {forum.name}\n{title}\n{content}\n{thread.thread.jump_url}")
                 return True
             except Exception as e:
                 self.forum_channel_info.pop(forum_channel_id)
