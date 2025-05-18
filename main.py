@@ -54,7 +54,7 @@ class SelfBot:
                 msg_res, forum_res = None, None
                 
                 if len(self.forum_channel_info.keys()) > 0:
-                    for forum_channel_id in self.forum_channel_info.keys():
+                    for forum_channel_id in list(self.forum_channel_info.keys()):
                         if not msg_res == False:
                             await sleep_like_human()
                         msg_res = await self._scheduled_forum_post(forum_channel_id)
